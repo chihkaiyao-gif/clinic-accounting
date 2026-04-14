@@ -60,6 +60,8 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-seri
 .btn-sm{padding:4px 10px;font-size:12px}
 .btn-danger{border-color:var(--red);color:var(--red);background:transparent}
 .btn-danger:hover{background:var(--red-light)}
+.btn-export{background:#1B4F8A;color:#fff;border:none;border-radius:var(--radius);padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-export:hover{background:#163f6e}
 .table-wrap{border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:var(--surface2);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.8px;text-transform:uppercase;border-bottom:1px solid var(--border)}
@@ -91,6 +93,28 @@ tr:hover td{background:var(--surface2)}
 .invite-code-display{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;color:var(--blue);letter-spacing:4px;margin:8px 0}
 .toast{position:fixed;bottom:20px;right:20px;background:#333;color:#fff;padding:10px 18px;border-radius:var(--radius);font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none}
 .toast.show{opacity:1}
+
+/* 列印樣式 */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  .no-print { display: none !important; }
+}
+#print-area { display: none; }
+.print-header { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #1A1916; padding-bottom: 16px; }
+.print-header h1 { font-size: 22px; font-weight: 700; }
+.print-header p { font-size: 13px; color: #666; margin-top: 4px; }
+.print-section { margin-bottom: 24px; }
+.print-section h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; padding: 6px 10px; background: #f0efea; border-left: 4px solid #1A1916; }
+.print-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.print-table th { background: #f5f4f0; padding: 7px 10px; text-align: left; border: 1px solid #ddd; font-weight: 600; }
+.print-table td { padding: 6px 10px; border: 1px solid #ddd; }
+.print-summary { display: flex; gap: 16px; margin-bottom: 24px; }
+.print-card { flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 14px; text-align: center; }
+.print-card-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+.print-card-val { font-size: 18px; font-weight: 700; }
+
 @media(max-width:680px){
 .shell{grid-template-columns:1fr}
 .sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap}
@@ -139,7 +163,10 @@ tr:hover td{background:var(--surface2)}
     </aside>
     <main class="main">
       <div id="panel-overview" class="panel active">
-        <div class="page-title">財務總覽</div>
+        <div class="flex-between">
+          <div class="page-title">財務總覽</div>
+          <button class="btn-export no-print" onclick="exportPDF()">📄 匯出PDF報表</button>
+        </div>
         <div class="metric-grid">
           <div class="mcard"><div class="mcard-label">本月營收</div><div class="mcard-val c-green" id="ov-rev">$0</div></div>
           <div class="mcard"><div class="mcard-label">本月支出</div><div class="mcard-val c-red" id="ov-exp">$0</div></div>
@@ -147,7 +174,7 @@ tr:hover td{background:var(--surface2)}
           <div class="mcard"><div class="mcard-label">零用金餘額</div><div class="mcard-val c-amber" id="ov-petty">$0</div></div>
           <div class="mcard"><div class="mcard-label">帳戶總額</div><div class="mcard-val" id="ov-acc">$0</div></div>
         </div>
-        <div class="section"><div class="section-title">本月收支概覽</div><div class="chart-wrap"><canvas id="overviewChart" role="img" aria-label="本月收支概覽"></canvas></div></div>
+        <div class="section"><div class="section-title">本月收支概覽</div><div class="chart-wrap"><canvas id="overviewChart"></canvas></div></div>
         <div class="section"><div class="section-title">最近10筆記錄</div><div class="table-wrap"><table><thead><tr><th>日期</th><th>類型</th><th>品項</th><th>金額</th><th>記錄人</th></tr></thead><tbody id="recent-tbody"></tbody></table></div></div>
       </div>
       <div id="panel-revenue" class="panel">
@@ -219,10 +246,10 @@ tr:hover td{background:var(--surface2)}
           <div class="mcard"><div class="mcard-label">本月支出</div><div class="mcard-val c-red" id="ch-exp">$0</div></div>
           <div class="mcard"><div class="mcard-label">本月淨利</div><div class="mcard-val c-blue" id="ch-profit">$0</div></div>
         </div>
-        <div class="section"><div class="section-title">近6個月收支趨勢</div><div class="chart-wrap"><canvas id="trendChart" role="img" aria-label="趨勢圖"></canvas></div></div>
+        <div class="section"><div class="section-title">近6個月收支趨勢</div><div class="chart-wrap"><canvas id="trendChart"></canvas></div></div>
         <div class="chart-grid">
-          <div class="section"><div class="section-title">支出類別</div><div class="chart-wrap-sm"><canvas id="expPieChart" role="img" aria-label="支出圓餅圖"></canvas></div><div id="pie-legend" style="margin-top:10px"></div></div>
-          <div class="section"><div class="section-title">本月營收品項</div><div class="chart-wrap-sm"><canvas id="revBarChart" role="img" aria-label="營收長條圖"></canvas></div></div>
+          <div class="section"><div class="section-title">支出類別</div><div class="chart-wrap-sm"><canvas id="expPieChart"></canvas></div><div id="pie-legend" style="margin-top:10px"></div></div>
+          <div class="section"><div class="section-title">本月營收品項</div><div class="chart-wrap-sm"><canvas id="revBarChart"></canvas></div></div>
         </div>
       </div>
       <div id="panel-admin" class="panel">
@@ -239,7 +266,12 @@ tr:hover td{background:var(--surface2)}
     </main>
   </div>
 </div>
+
+<!-- 列印用區域 -->
+<div id="print-area"></div>
+
 <div class="toast" id="toast"></div>
+
 <script>
 const LIFF_ID = '2009800934-AxPW840l';
 const API = '';
@@ -464,6 +496,67 @@ async function renderCharts() {
     const rCtx=document.getElementById('revBarChart');
     if(rCtx){if(charts.revBar)charts.revBar.destroy();if(rL.length)charts.revBar=new Chart(rCtx,{type:'bar',data:{labels:rL,datasets:[{data:rV,backgroundColor:'rgba(82,183,136,0.8)',borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>'$'+(Math.round(v)).toLocaleString()}}}}});}
   } catch(e) {}
+}
+
+async function exportPDF() {
+  toast('準備報表中...');
+  try {
+    const [revs, exps, pettyData, accs] = await Promise.all([
+      api('GET', '/api/revenues?month=' + currentMonth),
+      api('GET', '/api/expenses?month=' + currentMonth),
+      api('GET', '/api/petty'),
+      api('GET', '/api/accounts')
+    ]);
+    const revSum = revs.reduce((a,r)=>a+r.amount, 0);
+    const expSum = exps.reduce((a,e)=>a+e.amount, 0);
+    const profit = revSum - expSum;
+    const pettyBal = pettyData.init + pettyData.txs.reduce((a,t)=>a+(t.tx_type==='in'?t.amount:-t.amount), 0);
+    const accTotal = accs.reduce((a,ac)=>a+ac.balance, 0);
+
+    const revRows = revs.map(r=>`<tr><td>${r.date}</td><td>${r.item}</td><td>${r.note||'—'}</td><td style="text-align:right;font-weight:600;color:#2D6A4F">${fmt(r.amount)}</td><td>${r.created_by||''}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:#999">本月無記錄</td></tr>';
+    const expRows = exps.map(r=>`<tr><td>${r.date}</td><td>${r.item}</td><td>${r.category||'其他'}</td><td>${r.note||'—'}</td><td style="text-align:right;font-weight:600;color:#B5241C">${fmt(r.amount)}</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:#999">本月無記錄</td></tr>';
+    const pettyRows = pettyData.txs.slice(0,20).map(r=>`<tr><td>${r.date}</td><td>${r.item}</td><td>${r.tx_type==='in'?'補充':'支出'}</td><td style="text-align:right">${r.tx_type==='in'?'+':'−'}${fmt(r.amount)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:#999">無記錄</td></tr>';
+    const accRows = accs.map(a=>`<tr><td>${a.name}</td><td style="text-align:right">${fmt(a.init_amount)}</td><td style="text-align:right;font-weight:600;color:#1B4F8A">${fmt(a.balance)}</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#999">無帳戶</td></tr>';
+
+    document.getElementById('print-area').innerHTML = `
+      <div class="print-header">
+        <h1>🏥 澄心診所 財務月報表</h1>
+        <p>查詢月份：${currentMonth} &nbsp;｜&nbsp; 產製時間：${new Date().toLocaleString('zh-TW')}</p>
+      </div>
+      <div class="print-summary">
+        <div class="print-card"><div class="print-card-label">本月營收</div><div class="print-card-val" style="color:#2D6A4F">${fmt(revSum)}</div></div>
+        <div class="print-card"><div class="print-card-label">本月支出</div><div class="print-card-val" style="color:#B5241C">${fmt(expSum)}</div></div>
+        <div class="print-card"><div class="print-card-label">本月淨利</div><div class="print-card-val" style="color:${profit>=0?'#1B4F8A':'#B5241C'}">${fmt(profit)}</div></div>
+        <div class="print-card"><div class="print-card-label">零用金餘額</div><div class="print-card-val" style="color:#8A5A00">${fmt(pettyBal)}</div></div>
+        <div class="print-card"><div class="print-card-label">帳戶總額</div><div class="print-card-val">${fmt(accTotal)}</div></div>
+      </div>
+      <div class="print-section">
+        <h2>💰 本月營收明細</h2>
+        <table class="print-table"><thead><tr><th>日期</th><th>品項</th><th>備註</th><th style="text-align:right">金額</th><th>記錄人</th></tr></thead><tbody>${revRows}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">合計</td><td style="text-align:right;font-weight:700;color:#2D6A4F">${fmt(revSum)}</td><td></td></tr></tfoot></table>
+      </div>
+      <div class="print-section">
+        <h2>💸 本月支出明細</h2>
+        <table class="print-table"><thead><tr><th>日期</th><th>品項</th><th>類別</th><th>備註</th><th style="text-align:right">金額</th></tr></thead><tbody>${expRows}</tbody>
+        <tfoot><tr><td colspan="4" style="text-align:right;font-weight:700">合計</td><td style="text-align:right;font-weight:700;color:#B5241C">${fmt(expSum)}</td></tr></tfoot></table>
+      </div>
+      <div class="print-section">
+        <h2>💵 零用金明細</h2>
+        <table class="print-table"><thead><tr><th>日期</th><th>品項</th><th>類型</th><th style="text-align:right">金額</th></tr></thead><tbody>${pettyRows}</tbody>
+        <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">目前餘額</td><td style="text-align:right;font-weight:700;color:#8A5A00">${fmt(pettyBal)}</td></tr></tfoot></table>
+      </div>
+      <div class="print-section">
+        <h2>🏦 帳戶餘額</h2>
+        <table class="print-table"><thead><tr><th>帳戶名稱</th><th style="text-align:right">初始金額</th><th style="text-align:right">目前餘額</th></tr></thead><tbody>${accRows}</tbody>
+        <tfoot><tr><td style="font-weight:700">總計</td><td></td><td style="text-align:right;font-weight:700;color:#1B4F8A">${fmt(accTotal)}</td></tr></tfoot></table>
+      </div>
+    `;
+    document.getElementById('print-area').style.display = 'block';
+    setTimeout(() => {
+      window.print();
+      setTimeout(() => { document.getElementById('print-area').style.display = 'none'; }, 1000);
+    }, 300);
+  } catch(e) { toast('匯出失敗：' + e.message); }
 }
 
 async function addRevenue(){const date=document.getElementById('rev-date').value;const item=document.getElementById('rev-item').value.trim();const amount=parseFloat(document.getElementById('rev-amount').value)||0;const note=document.getElementById('rev-note').value.trim();if(!item||!amount){toast('請填寫品項與金額');return;}try{await api('POST','/api/revenues',{date,item,amount,note});document.getElementById('rev-item').value='';document.getElementById('rev-amount').value='';document.getElementById('rev-note').value='';toast('✅ 新增成功');renderAll();}catch(e){toast(e.message);}}
