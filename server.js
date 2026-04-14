@@ -216,6 +216,10 @@ app.get('/api/stats', auth, (req, res) => {
     return { month: m, revenue: rev, expense: exp, profit: rev-exp };
   }));
 });
-
+app.get('/init-admin', (req, res) => {
+  const code = 'ADMIN001';
+  db.prepare('INSERT OR IGNORE INTO invite_codes (code,role) VALUES (?,?)').run(code, 'admin');
+  res.json({ ok: true, code });
+});
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
